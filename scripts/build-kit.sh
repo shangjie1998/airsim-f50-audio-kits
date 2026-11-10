@@ -77,9 +77,12 @@ cp "$CFG" "$SRC/.config"
 make -C "$SRC" ARCH=arm64 olddefconfig >/dev/null
 rel=$(make -s -C "$SRC" ARCH=arm64 kernelrelease | tail -n 1)
 [ "$rel" = "$KREL" ] || die "构建树自报 $rel，和 $KREL 不符"
-make -C "$SRC" ARCH=arm64 -j"$JOBS" modules_prepare >/dev/null
-make -C "$SRC" ARCH=arm64 -j"$JOBS" modules >"$WORK/modules.log" 2>&1 \
-	|| { tail -n 30 "$WORK/modules.log"; die "in-tree modules 编不过，日志 $WORK/modules.log"; }
+# 必须整编（vmlinux + modules）：只编 modules 的话 modpost 拿不到 vmlinux.o，
+# 所有 vmlinux 导出符号（register_pernet_subsys 之类）都会变成 undefined，整个 modpost 失败。
+make -C "$SRC" ARCH=arm64 -j"$JOBS" >"$WORK/build.log" 2>&1 \
+	|| { tail -n 40 "$WORK/build.log"; die "内核整编失败，日志 $WORK/build.log"; }
+[ -f "$SRC/vmlinux" ] || die "整编完了却没有 vmlinux"
+[ -f "$SRC/Module.symvers" ] || die "整编完了却没有 Module.symvers"
 
 # 5) 组 kit
 KIT=$OUT_ROOT/kit-$KREL
