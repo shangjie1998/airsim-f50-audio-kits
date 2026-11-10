@@ -1,0 +1,68 @@
+name: 编音频模块
+
+on:
+  workflow_dispatch:
+    inputs:
+      krel:
+        description: '内核版本（要和 kits.lock、config/ 里的一致）'
+        required: true
+        default: '6.18.54'
+      tag:
+        description: 'KERNEL 里的 TAG（留空默认 kit-<krel>）'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'k-*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 装构建依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev \
+                                  patch xz-utils git curl cpio rsync
+
+      - name: 造 kit
+        env:
+          KREL: ${{ github.event.inputs.krel || '6.18.54' }}
+        run: |
+          JOBS=$(nproc) scripts/build-kit.sh "$KREL"
+
+      - name: 编模块
+        env:
+          KREL: ${{ github.event.inputs.krel || '6.18.54' }}
+          TAG_IN: ${{ github.event.inputs.tag }}
+        run: |
+          TAG=${TAG_IN:-kit-$KREL}
+          JOBS=$(nproc) scripts/build-modules.sh "$KREL" --tag "$TAG"
+
+      - name: 打包
+        env:
+          KREL: ${{ github.event.inputs.krel || '6.18.54' }}
+        run: |
+          cd out
+          tar -czf "airsim-f50-audio-$KREL.tar.gz" "modules-$KREL"
+          sha256sum "airsim-f50-audio-$KREL.tar.gz" > "airsim-f50-audio-$KREL.tar.gz.sha256"
+          cat "airsim-f50-audio-$KREL.tar.gz.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-modules
+          path: out/airsim-f50-audio-*.tar.gz*
+
+      - name: 发 Release（打 tag 时）
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/airsim-f50-audio-*.tar.gz*
+          body: |
+            按 `kits.lock` 里记录的内核配置编出来的语音模块，来源与方法见仓库 README 与 docs/rebuild.md。
+            驱动源码为 GPL-2.0，对应源码见 mu300-audio 仓库及本仓库记录的内核源码版本。

@@ -1,0 +1,11 @@
+# 源码与产物都不进 git
+*.tar.xz
+*.tar.gz
+*.ko
+*.o
+*.a
+*.so
+out/
+mod-build/
+linux-*/
+.DS_Store

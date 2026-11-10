@@ -1,0 +1,23 @@
+{
+  "说明": "这套音频驱动的上游出处，来自设备上 /mnt/mu300-disk/extra/airsim-audio/sources.json 的原始记录",
+  "kernel": {
+    "repository": "https://github.com/Enceka/android_kernel_zte_ums9620_mifi_u30air",
+    "commit": "b50db5b6224c11db42a246e8fcdaad1e1d59f478",
+    "对应": "设备上的 5.4.254-gb50db5b6224c 那套"
+  },
+  "audio": {
+    "repository": "https://github.com/kai-wu-cortex/mu300-audio",
+    "commit": "53cbe6a7344b7fa175ff87a73630f05e5862f483",
+    "license": "GPL-2.0（驱动）；MIT（tools/scripts）",
+    "patches_in_order": ["guard-reservation.patch", "startup-check.patch"]
+  },
+  "mainline_recipe": {
+    "repository": "https://github.com/dikeckaan/mu300-linux",
+    "note": "主线内核的构建口径：upstream/build.sh（clang + ThinLTO）+ upstream/build-modules.sh + patches/6.18/*"
+  },
+  "system_image": {
+    "版本": "mu300-r20261109.184229-g115621f5-sab8ca2c5",
+    "内核": "6.18.54",
+    "前一版": "mu300-r20261106.185421-gb35932ab-sf1806e05（内核 6.18.60）"
+  }
+}

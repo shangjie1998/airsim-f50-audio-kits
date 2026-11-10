@@ -1,0 +1,27 @@
+# F50（中兴 UMS9620 / 展锐 UMS9620）语音链路需要的 25 个模块。
+# 与 mu300-audio 仓库 kernel/build.sh 里 COMMON + sprd-dma/snd-soc-core/snd-compress 完全一致。
+agdsp_access
+audio-pipe
+audio-dsp-dump
+audio_mem
+audio_reserve
+audio_sipc
+mcdt_hw_r2p0
+snd-aloop
+snd-compress
+snd-dummy
+snd-soc-core
+snd-soc-sprd-card
+snd-soc-sprd-codec-ump9620
+snd-soc-sprd-codec-ump9620-power
+snd-soc-sprd-codec-ump9620-power-dev
+snd-soc-sprd-dummy-codec
+snd-soc-sprd-vbc-fe
+snd-soc-sprd-vbc-v4
+sprd-compr-2stage-dma
+sprd-dma
+sprd-dmaengine-pcm
+sprd-platform-pcm-routing
+sprd_apipe
+sprd_audcp_boot
+sprd_audcp_dvfs
