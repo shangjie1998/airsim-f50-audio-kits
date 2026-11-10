@@ -35,6 +35,10 @@ CONFIG_SHA=$3 AUDIO_SHA=$5
 [ -d "$KIT/build" ] || die "没有 $KIT/build，先跑 scripts/build-kit.sh $KREL"
 grep -qx "KREL=$KREL" "$KIT/KIT" || die "$KIT 不是 $KREL 的 kit"
 grep -qx "CONFIG=$CONFIG_SHA" "$KIT/KIT" || die "$KIT 的 config 与 kits.lock 不符"
+# 预检：这四样缺任何一个，后面都会以很难读的方式失败
+for need in ext/sprd_modem/kinclude ext/sprd_modem/Module.symvers ext/sound/soc ext/sound/core ext/sound/drivers ext/dma/virt-dma.c; do
+	[ -e "$KIT/$need" ] || die "kit 缺 $need（回看 scripts/build-kit.sh 的 ext 组装段）"
+done
 
 if [ -z "$AUDIO" ]; then
 	AUDIO=$OUT_ROOT/work-$KREL/mu300-audio
