@@ -9,3 +9,6 @@ out/
 mod-build/
 linux-*/
 .DS_Store
+
+# 冷存档例外：这些 tar.gz 是唯一来源，必须进 git
+!archive/**/*.tar.gz
