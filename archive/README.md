@@ -7,9 +7,10 @@
 | 目录 | 内容 | 用途 |
 |---|---|---|
 | `6.18.60/airsim-audio-6.18.60.tar.gz` | 设备上跑通过的那套：25 个音频 `.ko` + `KERNEL` 元数据 + 两个补丁 + ABI 报告 + 工具清单 | 刷机丢了音频，直接解包装回；也是核对新编产物的对照基准 |
-| `6.18.60/SHA256SUMS` | 上面那个包的 sha256 | 校验 |
+| `6.18.60/SHA256SUMS` | 上面各包的 sha256 | 校验 |
+| `6.18.60/upstream/mu300-kernel-6.18.tar.gz` | 上游 `mu300-linux` 发布 **v2026.11.02.1** 的 6.18 内核原包（53 MB）：`Image`、`ramdisk-generic.lz4`、`kernel.config`、`kernel.release=6.18.60`、整棵 `modules/`（2956 个 `.ko`） | 上游换基线/删 release 后，本地这份就是唯一可复现的来源；编外置模块时的 `Module.symvers` 基准也从这里取 |
 
-体积大的内核源码包（`mu300-kernel-6.18.tar.gz`、`mu300-kernel.tar.gz`）不在 git 里，放在本仓库 Release 资产 `archive-6.18.60`，`SHA256SUMS` 里也记了值。
+仓库没有 Release 写权限（PAT 403），所以大包也直接进 git，克隆大概 55 MB，换来的是"上游删了我也还在"。
 
 ## 用法
 
