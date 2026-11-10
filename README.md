@@ -45,7 +45,9 @@ scripts/build-kit.sh      源码 + 补丁 + 配置 → 构建树
 scripts/build-modules.sh  构建树 + 音频源码 → 25 个 .ko
 scripts/check.sh          数量 / vermagic / 补丁标记三连校验
 docs/rebuild.md           原理、失败判据、排查
-docs/踩坑记录.md          真跑一遍踩到的三个坑与改法（下次先看这个）
+docs/踩坑记录.md          真跑一遍踩到的坑与改法（下次先看这个）
+docs/系统与内核分开升级.md  设备怎么只换内核/只换系统、升级会保留什么、离线口子、判据
+archive/                  上游产物冷存档（6.18.60 音频件 + 内核原包），上游删了这里还有
 ```
 
 ## 加一个新内核版本
