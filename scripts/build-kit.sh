@@ -53,9 +53,11 @@ if [ -z "$SRCDIR" ]; then
 		[ "$got" = "$SRC_SHA" ] || die "源码包 sha256 是 $got，kits.lock 里是 $SRC_SHA"
 		tar -xf "$tarball" -C "$WORK"
 	fi
+	OWN_SRC=1
 else
 	SRC=$(cd "$SRCDIR" && pwd)
 fi
+OWN_SRC=${OWN_SRC:-0}
 
 # 2) mu300-linux（补丁与 ext 头文件的来源）
 if [ -z "$MU300" ]; then
@@ -84,15 +86,28 @@ make -C "$SRC" ARCH=arm64 -j"$JOBS" >"$WORK/build.log" 2>&1 \
 [ -f "$SRC/vmlinux" ] || die "整编完了却没有 vmlinux"
 [ -f "$SRC/Module.symvers" ] || die "整编完了却没有 Module.symvers"
 
-# 5) 组 kit
+# 5) 编 modems 的 sprd_modem：音频栈要它的 SIPIC/AGCP 符号（kits 里的 Module.symvers 就是这么来的）
+VMOD=$WORK/vendor-mod
+rm -rf "$VMOD"
+mkdir -p "$VMOD"
+cp -r "$MU300"/upstream/modules/sprd_modem "$VMOD/sprd_modem"
+make -C "$SRC" ARCH=arm64 M="$VMOD/sprd_modem" -j"$JOBS" modules >"$WORK/sprd_modem.log" 2>&1 \
+	|| { tail -n 40 "$WORK/sprd_modem.log"; die "sprd_modem 编不过，日志 $WORK/sprd_modem.log"; }
+
+# 6) 组 kit
 KIT=$OUT_ROOT/kit-$KREL
 rm -rf "$KIT"
 mkdir -p "$KIT/ext"
-cp -a "$SRC" "$KIT/build"
+# 自己下的源码树直接搬过去，省一半磁盘（runner 只有十几 G，整编一份就要 6~8G）
+if [ "${OWN_SRC:-0}" = 1 ]; then mv "$SRC" "$KIT/build"; else cp -a "$SRC" "$KIT/build"; fi
 # ext：模块栈编译时要的头文件与符号
 mkdir -p "$KIT/ext/sprd_modem" "$KIT/ext/wcn_bsp" "$KIT/ext/dma" "$KIT/ext/sound"
 cp -a "$MU300"/upstream/modules/sprd_modem/kinclude "$KIT/ext/sprd_modem/" 2>/dev/null || true
-cp -a "$MU300"/upstream/modules/sprd_modem/Module.symvers "$KIT/ext/sprd_modem/" 2>/dev/null || true
+cp -a "$VMOD"/sprd_modem/Module.symvers "$KIT/ext/sprd_modem/Module.symvers" || die "sprd_modem 没产出 Module.symvers"
+# sound/Kbuild 引的是 soc/soc-*.c、core/compress_offload.c、drivers/aloop.c，直接拿内核源码树补齐
+for d in soc core drivers; do
+	cp -a "$KIT/build/sound/$d" "$KIT/ext/sound/" || die "内核 sound/$d 拷不过去"
+done
 cp -a "$MU300"/upstream/modules/wcn_bsp/kinclude "$KIT/ext/wcn_bsp/" 2>/dev/null || true
 cp -a "$KIT/build"/drivers/dma/virt-dma.c "$KIT/build"/drivers/dma/virt-dma.h \
       "$KIT/build"/include/linux/dmaengine.h "$KIT/ext/dma/" 2>/dev/null || true
