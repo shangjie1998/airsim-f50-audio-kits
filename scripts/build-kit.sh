@@ -91,6 +91,8 @@ VMOD=$WORK/vendor-mod
 rm -rf "$VMOD"
 mkdir -p "$VMOD"
 cp -r "$MU300"/upstream/modules/sprd_modem "$VMOD/sprd_modem"
+# sprd_modem 的 Kbuild 用 -I../wcn_bsp/kinclude 引 mu300_compat.h，同级必须有 wcn_bsp
+cp -r "$MU300"/upstream/modules/wcn_bsp "$VMOD/wcn_bsp"
 make -C "$SRC" ARCH=arm64 M="$VMOD/sprd_modem" -j"$JOBS" modules >"$WORK/sprd_modem.log" 2>&1 \
 	|| { tail -n 40 "$WORK/sprd_modem.log"; die "sprd_modem 编不过，日志 $WORK/sprd_modem.log"; }
 
