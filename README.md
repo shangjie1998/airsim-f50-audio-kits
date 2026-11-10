@@ -45,6 +45,7 @@ scripts/build-kit.sh      源码 + 补丁 + 配置 → 构建树
 scripts/build-modules.sh  构建树 + 音频源码 → 25 个 .ko
 scripts/check.sh          数量 / vermagic / 补丁标记三连校验
 docs/rebuild.md           原理、失败判据、排查
+docs/踩坑记录.md          真跑一遍踩到的三个坑与改法（下次先看这个）
 ```
 
 ## 加一个新内核版本
@@ -63,5 +64,5 @@ docs/rebuild.md           原理、失败判据、排查
 ## 现状与限制
 
 - `6.18.54` 这套**上游从未发布过**（上游只做过 6.18.57/6.18.58），所以由本仓库自制 kit。
-- 首次云端构建可能踩到补丁偏移、config 选项差异，按 `docs/rebuild.md` 的排查表处理；跑通一次后就是稳定的。
+- 首次云端构建可能踩到补丁偏移、config 选项差异，按 `docs/rebuild.md` 排查；**已经踩过并写清的三个坑**见 `docs/踩坑记录.md`（modpost 缺 vmlinux、sound 源码树没补齐、sprd_modem 符号表没先编）。
 - 编译产物与插件侧的对接见另一仓库 `airsim-f50-openwrt` 的 `audio/f50/`。
