@@ -31,23 +31,34 @@ jobs:
                                   patch xz-utils git curl cpio rsync kmod dwarves \
                                   device-tree-compiler lz4 gpgv
 
+      - name: 定内核版本
+        run: |
+          # 手动触发用输入；推 k-<KREL> tag 触发就从 tag 名取
+          # （原来固定读 inputs.krel 的默认值，推 tag 会静默按 6.18.54 编，吃过这个亏）
+          if [ -n "${{ github.event.inputs.krel }}" ]; then
+            KREL="${{ github.event.inputs.krel }}"
+          else
+            KREL="${GITHUB_REF_NAME#k-}"
+          fi
+          case "$KREL" in
+            [0-9]*.[0-9]*) ;;
+            *) echo "拿不到内核版本（ref=$GITHUB_REF_NAME），要推 k-<KREL> 这样的 tag" >&2; exit 2 ;;
+          esac
+          echo "$KREL" | tee "$GITHUB_WORKSPACE/.krel"
+          echo "KREL=$KREL" >> "$GITHUB_ENV"
+
       - name: 造 kit
-        env:
-          KREL: ${{ github.event.inputs.krel || '6.18.54' }}
         run: |
           JOBS=$(nproc) scripts/build-kit.sh "$KREL"
 
       - name: 编模块
         env:
-          KREL: ${{ github.event.inputs.krel || '6.18.54' }}
           TAG_IN: ${{ github.event.inputs.tag }}
         run: |
           TAG=${TAG_IN:-kit-$KREL}
           JOBS=$(nproc) scripts/build-modules.sh "$KREL" --tag "$TAG"
 
       - name: 打包
-        env:
-          KREL: ${{ github.event.inputs.krel || '6.18.54' }}
         run: |
           cd out
           tar -czf "airsim-f50-audio-$KREL.tar.gz" "modules-$KREL"
