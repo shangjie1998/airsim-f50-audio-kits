@@ -63,6 +63,7 @@ if [ -f "$KIT/ext/dma/NEEDS_PRIV" ]; then
 		grep -q 'dmaengine_priv.h' "$f" && continue
 		{ echo '#include "dmaengine_priv.h"'; cat "$f"; } > "$f.tmp" && mv "$f.tmp" "$f"
 	done
+	echo "== 已给 $(ls "$mb"/sprd_audio/dma/*.c | wc -l) 个 dma 源文件注入 dmaengine_priv.h"
 fi
 cp -r "$AUDIO/kernel/mainline/sound/." "$mb/sound/"
 cp -r "$KIT/ext/sound/." "$mb/sound/" 2>/dev/null || true
@@ -86,5 +87,6 @@ for ko in $(find "$mb/sprd_audio" "$mb/sound" "$mb/audio_reserve" -name '*.ko');
 done
 printf 'KEY=%s\nKREL=%s\nCONFIG=%s\nTAG=%s\n' "${KREL%%.*}" "$KREL" "$CONFIG_SHA" "$TAG" > "$OUT/KERNEL"
 
-sh "$TOP/scripts/check.sh" "$OUT"
+# check.sh 有 set -o pipefail，必须用 bash；用 sh（Linux 上是 dash）会直接报 Illegal option
+bash "$TOP/scripts/check.sh" "$OUT"
 echo "== 模块好了: $OUT"
