@@ -114,6 +114,17 @@ cp -a "$MU300"/upstream/modules/wcn_bsp/kinclude "$KIT/ext/wcn_bsp/" 2>/dev/null
 cp -a "$KIT/build"/drivers/dma/virt-dma.c "$KIT/build"/drivers/dma/virt-dma.h \
       "$KIT/build"/include/linux/dmaengine.h "$KIT/ext/dma/" 2>/dev/null || true
 
+# 7.3 起 dma_cookie_status / dma_set_residue / dmaengine_desc_get_callback 这些 inline
+# 从公共 include/linux/dmaengine.h 挪进了 drivers/dma/dmaengine.h（内核私有，带外模块看不到）。
+# 带外编 virt-dma.c / sprd-dma.c 就得自己带一份，否则报 implicit declaration（-Werror 直接死）。
+# 只在公共头里确实没这个符号时才注入，6.18 这种老线不受影响。
+if ! grep -q 'dma_cookie_status' "$KIT/ext/dma/dmaengine.h" 2>/dev/null \
+   && [ -f "$KIT/build/drivers/dma/dmaengine.h" ]; then
+	cp -a "$KIT/build/drivers/dma/dmaengine.h" "$KIT/ext/dma/dmaengine_priv.h"
+	touch "$KIT/ext/dma/NEEDS_PRIV"
+	echo "== 该内核对 dma helper 私有化，已带 dmaengine_priv.h"
+fi
+
 printf 'KREL=%s\nCONFIG=%s\nAUDIO=%s\n' "$KREL" "$CONFIG_SHA" "$AUDIO_SHA" > "$KIT/KIT"
 echo "== kit 好了: $KIT"
 cat "$KIT/KIT"

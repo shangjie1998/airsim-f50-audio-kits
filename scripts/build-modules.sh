@@ -56,6 +56,14 @@ cp -r "$KIT/ext/sprd_modem/kinclude" "$mb/sprd_modem/kinclude"
 cp "$KIT/ext/sprd_modem/Module.symvers" "$mb/sprd_modem/Module.symvers" 2>/dev/null || true
 cp -r "$KIT/ext/wcn_bsp/kinclude" "$mb/wcn_bsp/kinclude" 2>/dev/null || true
 cp "$KIT/ext/dma/virt-dma.c" "$KIT/ext/dma/virt-dma.h" "$KIT/ext/dma/dmaengine.h" "$mb/sprd_audio/dma/" 2>/dev/null || true
+# 新内核（7.3+）把 dma helper 挪进私有头，带外编要自带一份：见 build-kit.sh 里的说明
+if [ -f "$KIT/ext/dma/NEEDS_PRIV" ]; then
+	cp "$KIT/ext/dma/dmaengine_priv.h" "$mb/sprd_audio/dma/"
+	for f in "$mb"/sprd_audio/dma/*.c; do
+		grep -q 'dmaengine_priv.h' "$f" && continue
+		{ echo '#include "dmaengine_priv.h"'; cat "$f"; } > "$f.tmp" && mv "$f.tmp" "$f"
+	done
+fi
 cp -r "$AUDIO/kernel/mainline/sound/." "$mb/sound/"
 cp -r "$KIT/ext/sound/." "$mb/sound/" 2>/dev/null || true
 cp -r "$AUDIO/kernel/common/audio_reserve/." "$mb/audio_reserve/"
